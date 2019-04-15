@@ -1,0 +1,49 @@
+---
+title: "LA Parking Ticket Distribution"
+author: "Brendan Allen"
+output: html_document
+---
+
+```{r}
+#import necessary libraries
+suppressMessages(library(leaflet))
+suppressMessages(library(zipcode))
+suppressMessages(library(tidyverse))
+suppressMessages(library(dplyr))
+
+data(zipcode) #grab the zipcode data from our zipcode library
+
+income <- read.csv("https://raw.githubusercontent.com/ballen2024/cins370/master/income.csv", sep='*') #grab incoem data
+tickets <- read.csv("https://raw.githubusercontent.com/ballen2024/cins370/master/parking.csv") #grab tickets data
+LA <- filter(zipcode, city == "Los Angeles") #filter our zipcode DB to only LA zipcodes
+LA$zip <- as.numeric(LA$zip) #normalize data types across data frames
+i <- left_join(income, LA, by = c("Zip.Code"="zip")) #join our income and zipcode dataframes
+I <- filter(i, latitude != "NA") #remove null data points
+t <- left_join(tickets, LA, by = "zip") #join our tickets and zipcode dataframes
+T <- filter(t, latitude != "NA") #filter null data points
+
+#use the dplyr library to group our data points together by zip
+groupped_T <- T %>%
+  select(zip) %>%
+  group_by(zip)
+
+tab <- table(groupped_T) #tabulate this dataframe to derive frequency
+tdf <- as.data.frame(tab) #restore to dataframe to provide easy access to the frequency attribute
+
+#create leaflet.js object to make map
+tix <- leaflet() %>%
+  addTiles() %>% #create base map
+  setView(lat = 34.0522, lng = -118.2437, zoom=11) #set view to Los Angeles
+
+#create dot markers on our map
+for(X in (1:length(T$zip))) {
+  # idx extracts the frequency of a given zipcode.
+  # this is useful for labeling each marker and calculating the radius of our marker
+  idx <- tdf[tdf$groupped_T==T[X,5],2]
+  tix <- tix %>% addCircleMarkers(lat=T[X,9], lng=T[X,10], weight = 1, radius = (0.35 *idx), label = as.character(idx))
+}
+tix #displays our leaflet map
+
+#histogram of the most ticketed colors of car
+(col_count <- ggplot(T, aes(T$color)) + geom_histogram(stat = 'count', color = 'black', fill = 'lightblue') + xlab('Car Color') + ylab('Tickets Issued') + theme_classic())
+```
