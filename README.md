@@ -8,7 +8,7 @@ Repository for SP19 CINS 370 Team Project
   * parking tickets issued in the city of Los Angeles
 
 ## R Files
-### ticket_map.Rmd
+### map.Rmd
   * visualized parking ticket data on a Leaflet JS map and plotted a histogram on ticket frequency by car color
-### ticket_map.html
+### map.html
   * Knitted version of .Rmd
